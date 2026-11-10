@@ -60,7 +60,7 @@
         <header class="bg-green-600 px-4 py-3 text-white flex flex-row justify-between items-center gap-2">
             <div>
                 <h1 class="text-xl md:text-2xl title-font leading-tight">💎 Schatzsuche: Alter & Herkunft </h1>
-                <p class="text-green-100 text-xs italic">Sprich den Satz / Speak the sentence</p>
+                <p class="text-green-100 text-xs italic">Sprich oder tippe den Satz / Speak or type the sentence</p>
             </div>
             <div id="timer-display" class="bg-green-800 px-3 py-1 rounded-xl text-lg md:text-xl font-bold border border-green-400 text-center shadow-inner">
                 05:00
@@ -91,29 +91,25 @@
                     <p id="target-prompt" class="text-base md:text-lg font-black text-slate-800 mt-0.5"></p>
                 </div>
 
-                <!-- Input & Speech Section -->
+                <!-- Input & Speech Section (Always open for typing backup) -->
                 <div id="input-section" class="space-y-2">
-                    <div class="relative">
-                        <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/90 flex flex-col items-center justify-center rounded-xl font-bold text-slate-500 text-center p-2 text-xs md:text-sm border border-dashed border-slate-300 pointer-events-none">
-                            <span>🎤 Klicke auf das Mikrofon & sprich</span>
-                            <span class="text-[11px] text-slate-400 font-normal">Click the microphone & speak</span>
-                        </div>
-                        <textarea id="answer-input" placeholder="Eingabe..." disabled
-                               class="w-full p-2 border border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-sm md:text-base bg-slate-50 h-16 resize-none font-medium"
+                    <div class="flex gap-2">
+                        <textarea id="answer-input" placeholder="Tippe hier oder nutze Mikrofon / Type here or use mic..."
+                               class="w-full p-2 border border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-sm md:text-base bg-white h-16 resize-none font-medium"
                         ></textarea>
                     </div>
                     
                     <div class="flex gap-2">
-                        <button id="submit-btn" onclick="checkAnswer()" disabled
-                                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-2.5 rounded-xl shadow transition-all disabled:opacity-50 text-sm md:text-base">
+                        <button id="submit-btn" onclick="checkAnswer()"
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-2.5 rounded-xl shadow transition-all text-sm md:text-base">
                             PRÜFEN / CHECK
                         </button>
                         <button id="mic-btn" onclick="startSpeech()" 
-                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight">
+                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight" title="Spracheingabe (Chrome/Safari)">
                             🎤
                         </button>
                     </div>
-                    <p id="speech-status" class="text-[11px] text-center text-slate-500 h-3 font-bold italic"></p>
+                    <p id="speech-status" class="text-[11px] text-center text-slate-500 h-3 font-bold italic">Tippen oder sprechen / Type or speak</p>
                 </div>
                 
                 <!-- Feedback Area (Fixed Compact Height) -->
@@ -131,7 +127,7 @@
             <div class="w-full lg:w-7/12 p-3 md:p-4 bg-white flex flex-col justify-between">
                 <div class="mb-2 flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
                     <h3 id="grid-status-text" class="text-xs md:text-sm font-bold text-slate-700 flex items-center gap-1">
-                        <span>📍</span> Warte auf Stimme / Waiting...
+                        <span>📍</span> Bereit zum Graben / Ready to dig...
                     </h3>
                     <span id="dig-count" class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm"></span>
                 </div>
@@ -284,35 +280,18 @@
                 const input = document.getElementById('answer-input');
                 input.value = speechResult;
                 document.getElementById('speech-status').innerText = "Erkannt! / Recognized!";
-                unlockInput();
             };
             
             recognition.onerror = () => {
                 isRecognitionActive = false;
                 document.getElementById('mic-btn').classList.remove('animate-pulse');
-                document.getElementById('speech-status').innerText = "Fehler. Bitte tippen / Type instead.";
-                unlockInput(); 
+                document.getElementById('speech-status').innerText = "Spracherfassung nicht verfügbar. Bitte tippen.";
             };
             
             recognition.onend = () => {
                 isRecognitionActive = false;
                 document.getElementById('mic-btn').classList.remove('animate-pulse');
-                setTimeout(unlockInput, 300);
             };
-        }
-
-        function unlockInput() {
-            const input = document.getElementById('answer-input');
-            const submitBtn = document.getElementById('submit-btn');
-            const lockOverlay = document.getElementById('input-lock-overlay');
-            const micBtn = document.getElementById('mic-btn');
-
-            input.disabled = false;
-            input.classList.remove('bg-slate-50');
-            submitBtn.disabled = false;
-            lockOverlay.classList.add('hidden');
-            micBtn.classList.remove('mic-highlight');
-            input.focus();
         }
 
         function startGame(count) {
@@ -423,20 +402,18 @@
             
             const input = document.getElementById('answer-input');
             const submitBtn = document.getElementById('submit-btn');
-            const lockOverlay = document.getElementById('input-lock-overlay');
             const micBtn = document.getElementById('mic-btn');
 
             input.value = '';
-            input.disabled = true;
-            input.classList.add('bg-slate-50');
-            submitBtn.disabled = true;
-            lockOverlay.classList.remove('hidden');
+            input.disabled = false;
+            input.classList.remove('bg-slate-50');
+            submitBtn.disabled = false;
             micBtn.disabled = false;
             micBtn.classList.add('mic-highlight');
 
-            document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-xs">Nutze das Mikrofon / Use microphone</p>';
-            document.getElementById('speech-status').innerText = "Bereit / Ready...";
-            document.getElementById('grid-status-text').innerHTML = '<span>📍</span> Warte auf Stimme / Waiting...';
+            document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-xs">Tippe oder sprich den Satz / Type or speak sentence</p>';
+            document.getElementById('speech-status').innerText = "Bereit zum Tippen oder Sprechen...";
+            document.getElementById('grid-status-text').innerHTML = '<span>📍</span> Bereit zum Graben...';
             document.getElementById('dig-count').innerText = "";
             
             currentPair = sentencePairs[Math.floor(Math.random() * sentencePairs.length)];
@@ -445,8 +422,16 @@
         }
 
         function startSpeech() {
-            if (!recognition || isRecognitionActive) return;
-            recognition.start();
+            if (!recognition) {
+                alert("Spracherkennung wird von diesem Browser (z.B. Safari) leider nicht unterstützt. Bitte tippe den Satz ein.");
+                return;
+            }
+            if (isRecognitionActive) return;
+            try {
+                recognition.start();
+            } catch(e) {
+                console.log(e);
+            }
         }
 
         function normalise(str) {
