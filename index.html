@@ -43,13 +43,15 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        .mic-highlight {
-            animation: pulse-ring 1.5s infinite;
+        .mic-listening {
+            animation: pulse-ring 1.2s infinite;
+            background-color: #dc2626 !important;
+            transform: scale(1.1);
         }
         @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.8); }
+            70% { box-shadow: 0 0 0 16px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
     </style>
 </head>
@@ -105,7 +107,7 @@
                             PRÜFEN / CHECK
                         </button>
                         <button id="mic-btn" onclick="startSpeech()" 
-                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight" title="Spracheingabe">
+                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all" title="Spracheingabe">
                             🎤
                         </button>
                     </div>
@@ -271,26 +273,32 @@
             
             recognition.onstart = () => {
                 isRecognitionActive = true;
-                document.getElementById('mic-btn').classList.add('animate-pulse');
-                document.getElementById('speech-status').innerText = "Höre zu / Listening...";
+                const micBtn = document.getElementById('mic-btn');
+                micBtn.classList.add('mic-listening');
+                micBtn.innerHTML = "🔴";
+                document.getElementById('speech-status').innerText = "🔴 Höre zu... / Listening...";
             };
 
             recognition.onresult = (event) => {
                 const speechResult = event.results[0][0].transcript;
                 const input = document.getElementById('answer-input');
                 input.value = speechResult;
-                document.getElementById('speech-status').innerText = "Erkannt! / Recognized!";
+                document.getElementById('speech-status').innerText = "✅ Erkannt! / Recognized!";
             };
             
             recognition.onerror = () => {
                 isRecognitionActive = false;
-                document.getElementById('mic-btn').classList.remove('animate-pulse');
-                document.getElementById('speech-status').innerText = "Spracherfassung nicht verfügbar. Bitte tippen.";
+                const micBtn = document.getElementById('mic-btn');
+                micBtn.classList.remove('mic-listening');
+                micBtn.innerHTML = "🎤";
+                document.getElementById('speech-status').innerText = "⚠️ Mikrofonfehler. Bitte tippen.";
             };
             
             recognition.onend = () => {
                 isRecognitionActive = false;
-                document.getElementById('mic-btn').classList.remove('animate-pulse');
+                const micBtn = document.getElementById('mic-btn');
+                micBtn.classList.remove('mic-listening');
+                micBtn.innerHTML = "🎤";
             };
         }
 
@@ -409,7 +417,7 @@
             input.classList.remove('bg-slate-50');
             submitBtn.disabled = false;
             micBtn.disabled = false;
-            micBtn.classList.add('mic-highlight');
+            micBtn.innerHTML = "🎤";
 
             document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-xs">Tippe oder sprich den Satz / Type or speak sentence</p>';
             document.getElementById('speech-status').innerText = "Bereit zum Tippen oder Sprechen...";
@@ -423,7 +431,7 @@
 
         function startSpeech() {
             if (!recognition) {
-                alert("Spracherkennung wird von diesem Browser (z.B. Safari) leider nicht unterstützt. Bitte tippe den Satz ein.");
+                alert("Spracherkennung wird von diesem Browser leider nicht unterstützt. Bitte tippe den Satz ein.");
                 return;
             }
             if (isRecognitionActive) return;
@@ -434,7 +442,6 @@
             }
         }
 
-        // Helper map to automatically convert numeric digits to written German words
         function replaceNumbersWithWords(str) {
             const numberMap = {
                 '0': 'null', '1': 'ein', '2': 'zwei', '3': 'drei', '4': 'vier',
@@ -449,7 +456,6 @@
         function normalise(str) {
             let processed = str.toLowerCase();
             processed = replaceNumbersWithWords(processed);
-            // Handle minor grammatical variations like "eins" vs "ein" if needed
             processed = processed.replace(/\beins jahr\b/g, "ein jahr");
             return processed
                 .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
@@ -487,9 +493,11 @@
                 `;
             } else {
                 feedback.innerHTML = `
-                    <div class="text-red-600 font-bold text-xs mb-0.5">❌ FALSCH / INCORRECT</div>
-                    <p class="text-[11px] text-slate-600 truncate">Eingabe: "${inputVal || "(leer)"}"</p>
-                    <p class="text-[11px] font-bold text-blue-600">Lösung / Solution: ${currentPair.de}</p>
+                    <div class="text-red-600 font-bold text-xs mb-1">❌ FALSCH / INCORRECT</div>
+                    <div class="w-full grid grid-cols-1 gap-1 text-left bg-slate-50 p-2 rounded border border-slate-200">
+                        <div class="text-[11px]"><strong class="text-red-500">Deine Eingabe / Your input:</strong> <span class="italic text-slate-700">"${inputVal || "(leer)"}"</span></div>
+                        <div class="text-[11px]"><strong class="text-blue-600">Lösung / Solution:</strong> <span class="font-bold text-slate-800">${currentPair.de}</span></div>
+                    </div>
                 `;
                 document.getElementById('continue-btn').classList.remove('hidden');
                 document.getElementById('grid-status-text').innerHTML = '<span>👎</span> Leider falsch / Incorrect';
