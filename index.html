@@ -91,7 +91,7 @@
                     <p id="target-prompt" class="text-base md:text-lg font-black text-slate-800 mt-0.5"></p>
                 </div>
 
-                <!-- Input & Speech Section (Always open for typing backup) -->
+                <!-- Input & Speech Section -->
                 <div id="input-section" class="space-y-2">
                     <div class="flex gap-2">
                         <textarea id="answer-input" placeholder="Tippe hier oder nutze Mikrofon / Type here or use mic..."
@@ -105,7 +105,7 @@
                             PRÜFEN / CHECK
                         </button>
                         <button id="mic-btn" onclick="startSpeech()" 
-                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight" title="Spracheingabe (Chrome/Safari)">
+                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight" title="Spracheingabe">
                             🎤
                         </button>
                     </div>
@@ -434,8 +434,24 @@
             }
         }
 
+        // Helper map to automatically convert numeric digits to written German words
+        function replaceNumbersWithWords(str) {
+            const numberMap = {
+                '0': 'null', '1': 'ein', '2': 'zwei', '3': 'drei', '4': 'vier',
+                '5': 'fünf', '6': 'sechs', '7': 'sieben', '8': 'acht', '9': 'neun',
+                '10': 'zehn', '11': 'elf', '12': 'zwölf', '13': 'dreizehn',
+                '14': 'vierzehn', '15': 'fünfzehn', '16': 'sechzehn',
+                '17': 'siebzehn', '18': 'achtzehn', '19': 'neunzehn', '20': 'zwanzig'
+            };
+            return str.replace(/\b\d+\b/g, match => numberMap[match] || match);
+        }
+
         function normalise(str) {
-            return str.toLowerCase()
+            let processed = str.toLowerCase();
+            processed = replaceNumbersWithWords(processed);
+            // Handle minor grammatical variations like "eins" vs "ein" if needed
+            processed = processed.replace(/\beins jahr\b/g, "ein jahr");
+            return processed
                 .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
                 .replace(/\s+/g, " ")
                 .trim();
