@@ -92,13 +92,12 @@
                 </div>
 
                 <!-- Input & Speech Section -->
-                <div id="input-section" class="space-y-2 relative">
-                    <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/90 flex flex-col items-center justify-center rounded-xl font-bold text-slate-500 text-center p-2 text-xs md:text-sm border border-dashed border-slate-300">
-                        <span>🎤 Klicke auf das Mikrofon & sprich</span>
-                        <span class="text-[11px] text-slate-400 font-normal">Click the microphone & speak</span>
-                    </div>
-                    
-                    <div class="flex gap-2">
+                <div id="input-section" class="space-y-2">
+                    <div class="relative">
+                        <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/90 flex flex-col items-center justify-center rounded-xl font-bold text-slate-500 text-center p-2 text-xs md:text-sm border border-dashed border-slate-300 pointer-events-none">
+                            <span>🎤 Klicke auf das Mikrofon & sprich</span>
+                            <span class="text-[11px] text-slate-400 font-normal">Click the microphone & speak</span>
+                        </div>
                         <textarea id="answer-input" placeholder="Eingabe..." disabled
                                class="w-full p-2 border border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-sm md:text-base bg-slate-50 h-16 resize-none font-medium"
                         ></textarea>
