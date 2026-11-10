@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schatzsuche: Alter und Herkunft (sein)</title>
+    <!-- External Dependencies: Tailwind CSS and Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+            overscroll-behavior: none;
+        }
+        .title-font {
+            font-family: 'Fredoka One', cursive;
+        }
+        .grid-tile {
+            transition: all 0.2s ease;
+            perspective: 1000px;
+        }
+        .grid-tile:not(.revealed):hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .treasure-reveal {
+            animation: bounce 0.5s ease-out;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .active-player {
+            ring: 4px solid #16a34a;
+            transform: scale(1.05);
+        }
+        .timer-low {
+            color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .mic-highlight {
+            animation: pulse-ring 1.5s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+
+    <div id="app" class="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-green-200">
+        <!-- Header Section -->
+        <header class="bg-green-600 p-4 md:p-6 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl title-font mb-1">💎 Schatzsuche: Alter & Herkunft (sein) 💎</h1>
+                <p class="text-green-100 italic text-sm md:text-base">Ordne die Bausteine, sprich den Satz, grabe nach Schätzen!</p>
+            </div>
+            <div id="timer-display" class="bg-green-800 px-6 py-2 rounded-2xl text-2xl font-bold border-2 border-green-400 min-w-[120px] text-center shadow-inner">
+                05:00
+            </div>
+        </header>
+
+        <!-- Initial Setup Screen -->
+        <div id="setup-screen" class="p-10 text-center">
+            <h2 class="text-2xl font-bold mb-6 text-slate-700">Wie viele Abenteurer seid ihr?</h2>
+            <div class="flex justify-center gap-6">
+                <button onclick="startGame(2)" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95">2 Spieler</button>
+                <button onclick="startGame(3)" class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95">3 Spieler</button>
+            </div>
+        </div>
+
+        <!-- Main Game Interface -->
+        <div id="game-screen" class="hidden flex flex-col lg:flex-row">
+            
+            <!-- Left Panel: Control & Tasks -->
+            <div class="w-full lg:w-5/12 p-6 bg-slate-50 border-r-2 border-slate-100 flex flex-col">
+                <div id="player-board" class="grid grid-cols-2 lg:grid-cols-1 gap-3 mb-6">
+                    <!-- Player status cards injected here -->
+                </div>
+
+                <div id="turn-info" class="bg-white p-5 rounded-xl border-2 border-slate-200 shadow-sm mb-4">
+                    <p class="text-slate-500 text-xs uppercase tracking-wider font-bold mb-1 text-blue-600">Aufgabe (Englisch)</p>
+                    <p id="english-sentence" class="text-lg font-bold text-slate-800 leading-tight mb-3"></p>
+                    
+                    <p class="text-slate-500 text-xs uppercase tracking-wider font-bold mb-1 text-amber-600">Wortbausteine (Jumbled Chunks)</p>
+                    <div id="jumbled-chunks" class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-slate-700 font-semibold text-sm tracking-wide"></div>
+                </div>
+
+                <div id="input-section" class="space-y-4">
+                    <div class="relative">
+                        <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/80 flex items-center justify-center rounded-xl font-bold text-slate-500 text-center px-4 italic border-2 border-dashed border-slate-300">
+                            🎤 Bitte klicke zuerst auf das Mikrofon und sprich den Satz...
+                        </div>
+                        <textarea id="answer-input" placeholder="Warte auf Spracheingabe..." disabled
+                               class="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-xl bg-slate-50 min-h-[100px] resize-none overflow-y-auto font-medium"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button id="submit-btn" onclick="checkAnswer()" disabled
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-xl shadow-md transition-all disabled:opacity-50 text-lg">
+                            PRÜFEN
+                        </button>
+                        <button id="mic-btn" onclick="startSpeech()" 
+                                class="w-20 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md flex items-center justify-center text-3xl transition-all mic-highlight">
+                            🎤
+                        </button>
+                    </div>
+                    <p id="speech-status" class="text-sm text-center text-slate-500 h-5 font-bold italic"></p>
+                </div>
+                
+                <div id="feedback-area" class="mt-4 p-4 rounded-xl flex-grow flex flex-col items-center justify-center text-center bg-white border-2 border-slate-100 shadow-inner min-h-[140px]">
+                </div>
+
+                <button id="continue-btn" onclick="nextTurn()" 
+                        class="hidden mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-xl shadow-lg transition-all animate-pulse text-xl">
+                    Weiter ➔
+                </button>
+            </div>
+
+            <!-- Right Panel: The Digging Grid -->
+            <div class="w-full lg:w-7/12 p-6 bg-white overflow-hidden flex flex-col">
+                <div class="mb-4 flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <h3 id="grid-status-text" class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                        <span class="text-2xl">📍</span> Warte auf Stimme...
+                    </h3>
+                    <span id="dig-count" class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-base font-bold shadow-sm"></span>
+                </div>
+                <div id="treasure-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 overflow-y-auto max-h-[650px] p-2 bg-slate-50 rounded-xl border-2 border-slate-100">
+                </div>
+            </div>
+        </div>
+
+        <!-- End Game Ranking Screen -->
+        <div id="finish-screen" class="hidden p-10 text-center">
+            <h2 class="text-5xl title-font mb-6 text-green-600">Spiel Beendet!</h2>
+            <div id="final-ranking" class="max-w-xl mx-auto mb-10 space-y-4"></div>
+            <button onclick="location.reload()" class="bg-green-600 text-white px-10 py-5 rounded-2xl text-2xl title-font hover:bg-green-700 transition-colors shadow-xl">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Sentences strictly practicing verb 'sein' (age and origin, no 'kommen aus'):
+         * - Ages using numbers 1-20
+         * - Origins: England, Deutschland, Österreich, aus der Schweiz, Lichtenstein
+         * - All personal pronouns, names, and compound subjects (Martin, du und Martin, Martina und ich)
+         */
+        const sentencePairs = [
+            { de: "Ich bin 15 Jahre alt.", en: "I am 15 years old.", jumbled: "15 Jahre alt / Ich bin" },
+            { de: "Ich bin aus England.", en: "I am from England.", jumbled: "aus England / Ich bin" },
+            { de: "Du bist 13 Jahre alt.", en: "You are 13 years old.", jumbled: "Du bist / 13 Jahre alt" },
+            { de: "Du bist aus Deutschland.", en: "You are from Germany.", jumbled: "aus Deutschland / Du bist" },
+            { de: "Er ist 14 Jahre alt.", en: "He is 14 years old.", jumbled: "14 Jahre alt / Er ist" },
+            { de: "Er ist aus Österreich.", en: "He is from Austria.", jumbled: "Er ist / aus Österreich" },
+            { de: "Sie ist 12 Jahre alt.", en: "She is 12 years old.", jumbled: "Sie ist / 12 Jahre alt" },
+            { de: "Sie ist aus der Schweiz.", en: "She is from Switzerland.", jumbled: "aus der Schweiz / Sie ist" },
+            { de: "Es ist 3 Jahre alt.", en: "It is 3 years old.", jumbled: "3 Jahre alt / Es ist" },
+            { de: "Es ist aus Lichtenstein.", en: "It is from Lichtenstein.", jumbled: "Es ist / aus Lichtenstein" },
+            { de: "Wir sind 16 Jahre alt.", en: "We are 16 years old.", jumbled: "Wir sind / 16 Jahre alt" },
+            { de: "Wir sind aus England.", en: "We are from England.", jumbled: "aus England / Wir sind" },
+            { de: "Ihr seid 11 Jahre alt.", en: "You all are 11 years old.", jumbled: "11 Jahre alt / Ihr seid" },
+            { de: "Ihr seid aus Deutschland.", en: "You all are from Germany.", jumbled: "aus Deutschland / Ihr seid" },
+            { de: "Sie sind 17 Jahre alt.", en: "They are 17 years old.", jumbled: "Sie sind / 17 Jahre alt" },
+            { de: "Sie sind aus Österreich.", en: "They are from Austria.", jumbled: "aus Österreich / Sie sind" },
+            { de: "Martin ist 18 Jahre alt.", en: "Martin is 18 years old.", jumbled: "Martin ist / 18 Jahre alt" },
+            { de: "Martin ist aus der Schweiz.", en: "Martin is from Switzerland.", jumbled: "aus der Schweiz / Martin ist" },
+            { de: "Du und Martin seid 19 Jahre alt.", en: "You and Martin are 19 years old.", jumbled: "19 Jahre alt / Du und Martin seid" },
+            { de: "Du und Martin seid aus Lichtenstein.", en: "You and Martin are from Lichtenstein.", jumbled: "Du und Martin seid / aus Lichtenstein" },
+            { de: "Martina und ich sind 20 Jahre alt.", en: "Martina and I are 20 years old.", jumbled: "Martina und ich sind / 20 Jahre alt" },
+            { de: "Martina und ich sind aus England.", en: "Martina and I are from England.", jumbled: "aus England / Martina und ich sind" },
+            { de: "Anna ist 8 Jahre alt.", en: "Anna is 8 years old.", jumbled: "8 Jahre alt / Anna ist" },
+            { de: "Anna ist aus Deutschland.", en: "Anna is from Germany.", jumbled: "Anna ist / aus Deutschland" },
+            { de: "Lukas und Sophie sind 7 Jahre alt.", en: "Lukas and Sophie are 7 years old.", jumbled: "Lukas und Sophie sind / 7 Jahre alt" },
+            { de: "Lukas und Sophie sind aus Österreich.", en: "Lukas and Sophie are from Austria.", jumbled: "aus Österreich / Lukas und Sophie sind" }
+        ];
+
+        const playerColours = ['blue', 'purple', 'amber'];
+        const playerNames = ['Blaues Team', 'Lila Team', 'Gold Team'];
+
+        let players = [];
+        let currentPlayerIndex = 0;
+        let currentPair = null;
+        let canDig = false;
+        let gridData = [];
+        const gridSize = 64; 
+        let timeLeft = 300; 
+        let timerInterval = null;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isRecognitionActive = false;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'de-DE';
+            recognition.interimResults = false;
+            
+            recognition.onstart = () => {
+                isRecognitionActive = true;
+                document.getElementById('mic-btn').classList.add('animate-pulse');
+                document.getElementById('speech-status').innerText = "Ich höre zu...";
+            };
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                const input = document.getElementById('answer-input');
+                input.value = speechResult;
+                document.getElementById('speech-status').innerText = "Erkannt! Jetzt korrigieren oder prüfen.";
+                unlockInput();
+            };
+            
+            recognition.onerror = () => {
+                isRecognitionActive = false;
+                document.getElementById('mic-btn').classList.remove('animate-pulse');
+                document.getElementById('speech-status').innerText = "Fehler. Du kannst jetzt tippen.";
+                unlockInput(); 
+            };
+            
+            recognition.onend = () => {
+                isRecognitionActive = false;
+                document.getElementById('mic-btn').classList.remove('animate-pulse');
+                setTimeout(unlockInput, 500);
+            };
+        }
+
+        function unlockInput() {
+            const input = document.getElementById('answer-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const lockOverlay = document.getElementById('input-lock-overlay');
+            const micBtn = document.getElementById('mic-btn');
+
+            input.disabled = false;
+            input.classList.remove('bg-slate-50');
+            submitBtn.disabled = false;
+            lockOverlay.classList.add('hidden');
+            micBtn.classList.remove('mic-highlight');
+            input.focus();
+        }
+
+        function startGame(count) {
+            players = [];
+            for (let i = 0; i < count; i++) {
+                players.push({ 
+                    id: i, 
+                    name: playerNames[i], 
+                    score: 0, 
+                    correctAnswers: 0, 
+                    color: playerColours[i] 
+                });
+            }
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            initialiseGrid();
+            updatePlayerBoard();
+            startTimer();
+            startNewRound();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            display.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if (timeLeft <= 30) display.classList.add('timer-low');
+        }
+
+        function initialiseGrid() {
+            const gridContainer = document.getElementById('treasure-grid');
+            const rewardTypes = [
+                { icon: '🪙', min: 2, max: 10, label: 'Münzen' },   
+                { icon: '💰', min: 15, max: 35, label: 'Geldbeutel' }, 
+                { icon: '💍', min: 10, max: 15, label: 'Ring' }, 
+                { icon: '💎', min: 20, max: 30, label: 'Edelstein' }, 
+                { icon: '👑', min: 40, max: 60, label: 'Krone' }, 
+                { icon: '✨', min: 1, max: 5, label: 'Sternenstaub' },   
+                { icon: '🦴', min: -5, max: -2, label: 'Knochen' }, 
+                { icon: '💩', min: -8, max: -4, label: 'Mist' }, 
+                { icon: '❌', min: -15, max: -10, label: 'Gefahr' },
+                { icon: '👟', min: 0, max: 1, label: 'Alter Schuh' }, 
+                { icon: '🥫', min: 0, max: 1, label: 'Alte Dose' }    
+            ];
+
+            let tempRewards = [];
+            for(let i = 0; i < 10; i++) tempRewards.push({...rewardTypes[0]}); 
+            for(let i = 0; i < 6; i++) tempRewards.push({...rewardTypes[1]}); 
+            for(let i = 0; i < 3; i++) tempRewards.push({...rewardTypes[2]}); 
+            for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[3]}); 
+            for(let i = 0; i < 1; i++) tempRewards.push({...rewardTypes[4]}); 
+            for(let i = 0; i < 4; i++) tempRewards.push({...rewardTypes[5]}); 
+            for(let i = 0; i < 3; i++) tempRewards.push({...rewardTypes[6]}); 
+            for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[7]}); 
+            for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[8]}); 
+            for(let i = 0; i < 5; i++) tempRewards.push({...rewardTypes[9]}); 
+            for(let i = 0; i < 5; i++) tempRewards.push({...rewardTypes[10]}); 
+
+            while(tempRewards.length < gridSize) {
+                tempRewards.push({ icon: '🕳️', min: 0, max: 0, label: 'Nichts' });
+            }
+            
+            gridData = tempRewards.sort(() => Math.random() - 0.5).map(item => {
+                const pts = Math.floor(Math.random() * (item.max - item.min + 1)) + item.min;
+                return { icon: item.icon, points: pts, label: item.label };
+            });
+            
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < gridSize; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'grid-tile bg-orange-200 border-2 border-orange-300 rounded-lg cursor-pointer h-14 md:h-16 flex items-center justify-center text-2xl md:text-3xl shadow-inner';
+                tile.id = `tile-${i}`;
+                tile.onclick = () => handleDig(i);
+                gridContainer.appendChild(tile);
+            }
+        }
+
+        function updatePlayerBoard() {
+            const board = document.getElementById('player-board');
+            board.innerHTML = players.map((p, idx) => `
+                <div class="p-4 rounded-xl border-2 transition-all ${idx === currentPlayerIndex ? `active-player bg-white shadow-lg border-${p.color}-500` : 'bg-slate-100 opacity-60 border-transparent'}">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-lg text-${p.color}-600">${p.name}</span>
+                        <span class="bg-${p.color}-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">${p.score} Pkt.</span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-bold">
+                        <span class="mr-1">✅ Richtig gelöst:</span>
+                        <span class="text-${p.color}-600">${p.correctAnswers}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startNewRound() {
+            canDig = false;
+            document.getElementById('continue-btn').classList.add('hidden');
+            
+            const input = document.getElementById('answer-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const lockOverlay = document.getElementById('input-lock-overlay');
+            const micBtn = document.getElementById('mic-btn');
+
+            input.value = '';
+            input.disabled = true;
+            input.classList.add('bg-slate-50');
+            submitBtn.disabled = true;
+            lockOverlay.classList.remove('hidden');
+            micBtn.disabled = false;
+            micBtn.classList.add('mic-highlight');
+
+            document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-base">Nutze zuerst das Mikrofon!</p>';
+            document.getElementById('speech-status').innerText = "Bereit für deine Stimme...";
+            document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl">📍</span> Warte auf Stimme...';
+            document.getElementById('dig-count').innerText = "";
+            
+            currentPair = sentencePairs[Math.floor(Math.random() * sentencePairs.length)];
+            document.getElementById('english-sentence').innerText = currentPair.en;
+            document.getElementById('jumbled-chunks').innerText = currentPair.jumbled;
+            updatePlayerBoard();
+        }
+
+        function startSpeech() {
+            if (!recognition || isRecognitionActive) return;
+            recognition.start();
+        }
+
+        function normalise(str) {
+            return str.toLowerCase()
+                .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function checkAnswer() {
+            const inputVal = document.getElementById('answer-input').value;
+            const normInput = normalise(inputVal);
+            const normCorrect = normalise(currentPair.de);
+            
+            const isCorrect = (normInput === normCorrect);
+            const feedback = document.getElementById('feedback-area');
+            
+            document.getElementById('answer-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('mic-btn').disabled = true;
+
+            if (isCorrect) {
+                players[currentPlayerIndex].correctAnswers++;
+                updatePlayerBoard();
+                
+                feedback.innerHTML = `
+                    <div class="text-green-600 font-bold mb-2 text-xl">✅ RICHTIG!</div>
+                    <div class="text-slate-700 bg-green-50 p-3 rounded-lg border-2 border-green-200 w-full text-left">
+                        <p class="text-[10px] uppercase text-green-500 font-black mb-1">Deine Antwort:</p>
+                        <p class="font-bold text-base">${inputVal || "—"}</p>
+                    </div>
+                `;
+                canDig = true;
+                document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl text-green-500">⛏️</span> Korrekt! Grabe jetzt!';
+                document.getElementById('dig-count').innerText = "👉 Klicke auf ein Feld im Raster!";
+            } else {
+                feedback.innerHTML = `
+                    <div class="text-red-600 font-bold mb-2 text-xl">❌ NICHT GANZ...</div>
+                    <div class="space-y-2 text-left w-full">
+                        <div class="bg-red-50 p-2 rounded border border-red-100">
+                            <p class="text-[9px] uppercase text-red-400 font-black">Deine Eingabe:</p>
+                            <p class="text-sm italic text-slate-600">${inputVal || "(leer)"}</p>
+                        </div>
+                        <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                            <p class="text-[9px] uppercase text-blue-500 font-black">Richtige Lösung:</p>
+                            <p class="text-sm font-bold text-slate-800">${currentPair.de}</p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('continue-btn').classList.remove('hidden');
+                document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl">👎</span> Leider falsch.';
+            }
+        }
+
+        function handleDig(index) {
+            if (!canDig) return;
+            const tile = document.getElementById(`tile-${index}`);
+            if (tile.classList.contains('revealed')) return;
+
+            const content = gridData[index];
+            tile.classList.add('revealed');
+            tile.classList.remove('bg-orange-200', 'cursor-pointer');
+            tile.classList.add('bg-white', 'treasure-reveal', 'border-slate-100');
+            
+            tile.innerText = content.icon;
+            players[currentPlayerIndex].score += content.points;
+            updatePlayerBoard();
+            
+            canDig = false;
+            let resultText = "";
+            if (content.icon === '🕳️') {
+                resultText = "Nichts gefunden...";
+            } else if (content.points > 0) {
+                resultText = `${content.label}: +${content.points} Punkte!`;
+            } else if (content.points < 0) {
+                resultText = `${content.label}: ${content.points} Punkte!`;
+            } else {
+                resultText = `${content.label}: 0 Punkte.`;
+            }
+            
+            document.getElementById('dig-count').innerText = resultText;
+            document.getElementById('continue-btn').classList.remove('hidden');
+
+            if (isGridFull()) endGame();
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            startNewRound();
+        }
+
+        function isGridFull() {
+            return document.querySelectorAll('.grid-tile:not(.revealed)').length === 0;
+        }
+
+        function endGame() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('finish-screen').classList.remove('hidden');
+            const ranking = [...players].sort((a, b) => b.score - a.score);
+            const rankingList = document.getElementById('final-ranking');
+            rankingList.innerHTML = ranking.map((p, i) => `
+                <div class="flex items-center justify-between bg-white p-6 rounded-2xl border-4 border-${p.color}-500 shadow-xl">
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold">${i + 1}. ${p.name}</span>
+                        <span class="text-sm text-slate-500 font-bold">✅ ${p.correctAnswers} Sätze richtig</span>
+                    </div>
+                    <span class="text-2xl font-bold text-green-600">${p.score} Punkte</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
