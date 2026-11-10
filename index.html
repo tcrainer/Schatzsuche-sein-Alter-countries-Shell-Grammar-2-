@@ -30,11 +30,10 @@
         }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
         }
         .active-player {
-            ring: 4px solid #16a34a;
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
         .timer-low {
             color: #ef4444;
@@ -49,149 +48,136 @@
         }
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        textarea::-webkit-scrollbar {
-            width: 8px;
-        }
-        textarea::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        textarea::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
         }
     </style>
 </head>
-<body class="min-h-screen p-4">
+<body class="min-h-screen p-2 md:p-4 flex flex-col justify-center">
 
-    <div id="app" class="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-green-200">
+    <div id="app" class="max-w-7xl w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-green-200">
         <!-- Header Section -->
-        <header class="bg-green-600 p-4 md:p-6 text-white flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="text-center md:text-left">
-                <h1 class="text-3xl md:text-4xl title-font mb-1">💎 Schatzsuche: Alter & Herkunft (sein) 💎</h1>
-                <p class="text-green-100 italic text-sm md:text-base">Ordne die Bausteine, sprich den Satz, grabe nach Schätzen!</p>
+        <header class="bg-green-600 px-4 py-3 text-white flex flex-row justify-between items-center gap-2">
+            <div>
+                <h1 class="text-xl md:text-2xl title-font leading-tight">💎 Schatzsuche: Alter & Herkunft </h1>
+                <p class="text-green-100 text-xs italic">Sprich den Satz / Speak the sentence</p>
             </div>
-            <div id="timer-display" class="bg-green-800 px-6 py-2 rounded-2xl text-2xl font-bold border-2 border-green-400 min-w-[120px] text-center shadow-inner">
+            <div id="timer-display" class="bg-green-800 px-3 py-1 rounded-xl text-lg md:text-xl font-bold border border-green-400 text-center shadow-inner">
                 05:00
             </div>
         </header>
 
         <!-- Initial Setup Screen -->
-        <div id="setup-screen" class="p-10 text-center">
-            <h2 class="text-2xl font-bold mb-6 text-slate-700">Wie viele Abenteurer seid ihr?</h2>
-            <div class="flex justify-center gap-6">
-                <button onclick="startGame(2)" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95">2 Spieler</button>
-                <button onclick="startGame(3)" class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95">3 Spieler</button>
+        <div id="setup-screen" class="p-8 text-center">
+            <h2 class="text-xl font-bold mb-4 text-slate-700">Wie viele Abenteurer seid ihr? / How many adventurers?</h2>
+            <div class="flex justify-center gap-4">
+                <button onclick="startGame(2)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl text-lg font-bold shadow transition-transform active:scale-95">2 Spieler</button>
+                <button onclick="startGame(3)" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl text-lg font-bold shadow transition-transform active:scale-95">3 Spieler</button>
             </div>
         </div>
 
-        <!-- Main Game Interface -->
-        <div id="game-screen" class="hidden flex flex-col lg:flex-row">
+        <!-- Main Game Interface (Compact Single Page) -->
+        <div id="game-screen" class="hidden flex flex-col lg:flex-row h-full">
             
-            <!-- Left Panel: Control & Tasks -->
-            <div class="w-full lg:w-5/12 p-6 bg-slate-50 border-r-2 border-slate-100 flex flex-col">
-                <div id="player-board" class="grid grid-cols-2 lg:grid-cols-1 gap-3 mb-6">
-                    <!-- Player status cards injected here -->
+            <!-- Left Panel: Control & Tasks (Compact) -->
+            <div class="w-full lg:w-5/12 p-3 md:p-4 bg-slate-50 border-r border-slate-200 flex flex-col justify-between gap-3">
+                
+                <!-- Player Board -->
+                <div id="player-board" class="grid grid-cols-2 lg:grid-cols-1 gap-2"></div>
+
+                <!-- Task Box -->
+                <div id="turn-info" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Satz-Aufgabe / Target Sentence</p>
+                    <p id="target-prompt" class="text-base md:text-lg font-black text-slate-800 mt-0.5"></p>
                 </div>
 
-                <div id="turn-info" class="bg-white p-5 rounded-xl border-2 border-slate-200 shadow-sm mb-4">
-                    <p class="text-slate-500 text-xs uppercase tracking-wider font-bold mb-1 text-blue-600">Aufgabe (Englisch)</p>
-                    <p id="english-sentence" class="text-lg font-bold text-slate-800 leading-tight mb-3"></p>
+                <!-- Input & Speech Section -->
+                <div id="input-section" class="space-y-2 relative">
+                    <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/90 flex flex-col items-center justify-center rounded-xl font-bold text-slate-500 text-center p-2 text-xs md:text-sm border border-dashed border-slate-300">
+                        <span>🎤 Klicke auf das Mikrofon & sprich</span>
+                        <span class="text-[11px] text-slate-400 font-normal">Click the microphone & speak</span>
+                    </div>
                     
-                    <p class="text-slate-500 text-xs uppercase tracking-wider font-bold mb-1 text-amber-600">Wortbausteine (Jumbled Chunks)</p>
-                    <div id="jumbled-chunks" class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-slate-700 font-semibold text-sm tracking-wide"></div>
-                </div>
-
-                <div id="input-section" class="space-y-4">
-                    <div class="relative">
-                        <div id="input-lock-overlay" class="absolute inset-0 z-10 bg-slate-100/80 flex items-center justify-center rounded-xl font-bold text-slate-500 text-center px-4 italic border-2 border-dashed border-slate-300">
-                            🎤 Bitte klicke zuerst auf das Mikrofon und sprich den Satz...
-                        </div>
-                        <textarea id="answer-input" placeholder="Warte auf Spracheingabe..." disabled
-                               class="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-xl bg-slate-50 min-h-[100px] resize-none overflow-y-auto font-medium"
+                    <div class="flex gap-2">
+                        <textarea id="answer-input" placeholder="Eingabe..." disabled
+                               class="w-full p-2 border border-slate-200 rounded-xl focus:border-green-500 outline-none transition-all text-sm md:text-base bg-slate-50 h-16 resize-none font-medium"
                         ></textarea>
                     </div>
                     
-                    <div class="flex gap-3">
+                    <div class="flex gap-2">
                         <button id="submit-btn" onclick="checkAnswer()" disabled
-                                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-xl shadow-md transition-all disabled:opacity-50 text-lg">
-                            PRÜFEN
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-2.5 rounded-xl shadow transition-all disabled:opacity-50 text-sm md:text-base">
+                            PRÜFEN / CHECK
                         </button>
                         <button id="mic-btn" onclick="startSpeech()" 
-                                class="w-20 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md flex items-center justify-center text-3xl transition-all mic-highlight">
+                                class="w-14 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow flex items-center justify-center text-2xl transition-all mic-highlight">
                             🎤
                         </button>
                     </div>
-                    <p id="speech-status" class="text-sm text-center text-slate-500 h-5 font-bold italic"></p>
+                    <p id="speech-status" class="text-[11px] text-center text-slate-500 h-3 font-bold italic"></p>
                 </div>
                 
-                <div id="feedback-area" class="mt-4 p-4 rounded-xl flex-grow flex flex-col items-center justify-center text-center bg-white border-2 border-slate-100 shadow-inner min-h-[140px]">
+                <!-- Feedback Area (Fixed Compact Height) -->
+                <div id="feedback-area" class="p-2 md:p-3 rounded-xl flex flex-col items-center justify-center text-center bg-white border border-slate-200 shadow-inner min-h-[90px] text-xs md:text-sm">
+                    <p class="text-slate-400 italic">Bereit für die nächste Runde / Ready for next round</p>
                 </div>
 
                 <button id="continue-btn" onclick="nextTurn()" 
-                        class="hidden mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-xl shadow-lg transition-all animate-pulse text-xl">
-                    Weiter ➔
+                        class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition-all animate-pulse text-base">
+                    Nächster Spieler / Next Player ➔
                 </button>
             </div>
 
             <!-- Right Panel: The Digging Grid -->
-            <div class="w-full lg:w-7/12 p-6 bg-white overflow-hidden flex flex-col">
-                <div class="mb-4 flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <h3 id="grid-status-text" class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                        <span class="text-2xl">📍</span> Warte auf Stimme...
+            <div class="w-full lg:w-7/12 p-3 md:p-4 bg-white flex flex-col justify-between">
+                <div class="mb-2 flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                    <h3 id="grid-status-text" class="text-xs md:text-sm font-bold text-slate-700 flex items-center gap-1">
+                        <span>📍</span> Warte auf Stimme / Waiting...
                     </h3>
-                    <span id="dig-count" class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-base font-bold shadow-sm"></span>
+                    <span id="dig-count" class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm"></span>
                 </div>
-                <div id="treasure-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 overflow-y-auto max-h-[650px] p-2 bg-slate-50 rounded-xl border-2 border-slate-100">
+                <div id="treasure-grid" class="grid grid-cols-6 sm:grid-cols-8 gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-100 max-h-[420px] overflow-y-auto">
                 </div>
             </div>
         </div>
 
         <!-- End Game Ranking Screen -->
-        <div id="finish-screen" class="hidden p-10 text-center">
-            <h2 class="text-5xl title-font mb-6 text-green-600">Spiel Beendet!</h2>
-            <div id="final-ranking" class="max-w-xl mx-auto mb-10 space-y-4"></div>
-            <button onclick="location.reload()" class="bg-green-600 text-white px-10 py-5 rounded-2xl text-2xl title-font hover:bg-green-700 transition-colors shadow-xl">Nochmal spielen</button>
+        <div id="finish-screen" class="hidden p-8 text-center">
+            <h2 class="text-4xl title-font mb-4 text-green-600">Spiel Beendet! / Game Over!</h2>
+            <div id="final-ranking" class="max-w-md mx-auto mb-6 space-y-3"></div>
+            <button onclick="location.reload()" class="bg-green-600 text-white px-8 py-4 rounded-2xl text-xl title-font hover:bg-green-700 transition-colors shadow-lg">Nochmal spielen / Play Again</button>
         </div>
     </div>
 
     <script>
-        /**
-         * Sentences strictly practicing verb 'sein' (age and origin, no 'kommen aus'):
-         * - Ages using numbers 1-20
-         * - Origins: England, Deutschland, Österreich, aus der Schweiz, Lichtenstein
-         * - All personal pronouns, names, and compound subjects (Martin, du und Martin, Martina und ich)
-         */
         const sentencePairs = [
-            { de: "Ich bin 15 Jahre alt.", en: "I am 15 years old.", jumbled: "15 Jahre alt / Ich bin" },
-            { de: "Ich bin aus England.", en: "I am from England.", jumbled: "aus England / Ich bin" },
-            { de: "Du bist 13 Jahre alt.", en: "You are 13 years old.", jumbled: "Du bist / 13 Jahre alt" },
-            { de: "Du bist aus Deutschland.", en: "You are from Germany.", jumbled: "aus Deutschland / Du bist" },
-            { de: "Er ist 14 Jahre alt.", en: "He is 14 years old.", jumbled: "14 Jahre alt / Er ist" },
-            { de: "Er ist aus Österreich.", en: "He is from Austria.", jumbled: "Er ist / aus Österreich" },
-            { de: "Sie ist 12 Jahre alt.", en: "She is 12 years old.", jumbled: "Sie ist / 12 Jahre alt" },
-            { de: "Sie ist aus der Schweiz.", en: "She is from Switzerland.", jumbled: "aus der Schweiz / Sie ist" },
-            { de: "Es ist 3 Jahre alt.", en: "It is 3 years old.", jumbled: "3 Jahre alt / Es ist" },
-            { de: "Es ist aus Lichtenstein.", en: "It is from Lichtenstein.", jumbled: "Es ist / aus Lichtenstein" },
-            { de: "Wir sind 16 Jahre alt.", en: "We are 16 years old.", jumbled: "Wir sind / 16 Jahre alt" },
-            { de: "Wir sind aus England.", en: "We are from England.", jumbled: "aus England / Wir sind" },
-            { de: "Ihr seid 11 Jahre alt.", en: "You all are 11 years old.", jumbled: "11 Jahre alt / Ihr seid" },
-            { de: "Ihr seid aus Deutschland.", en: "You all are from Germany.", jumbled: "aus Deutschland / Ihr seid" },
-            { de: "Sie sind 17 Jahre alt.", en: "They are 17 years old.", jumbled: "Sie sind / 17 Jahre alt" },
-            { de: "Sie sind aus Österreich.", en: "They are from Austria.", jumbled: "aus Österreich / Sie sind" },
-            { de: "Martin ist 18 Jahre alt.", en: "Martin is 18 years old.", jumbled: "Martin ist / 18 Jahre alt" },
-            { de: "Martin ist aus der Schweiz.", en: "Martin is from Switzerland.", jumbled: "aus der Schweiz / Martin ist" },
-            { de: "Du und Martin seid 19 Jahre alt.", en: "You and Martin are 19 years old.", jumbled: "19 Jahre alt / Du und Martin seid" },
-            { de: "Du und Martin seid aus Lichtenstein.", en: "You and Martin are from Lichtenstein.", jumbled: "Du und Martin seid / aus Lichtenstein" },
-            { de: "Martina und ich sind 20 Jahre alt.", en: "Martina and I are 20 years old.", jumbled: "Martina und ich sind / 20 Jahre alt" },
-            { de: "Martina und ich sind aus England.", en: "Martina and I are from England.", jumbled: "aus England / Martina und ich sind" },
-            { de: "Anna ist 8 Jahre alt.", en: "Anna is 8 years old.", jumbled: "8 Jahre alt / Anna ist" },
-            { de: "Anna ist aus Deutschland.", en: "Anna is from Germany.", jumbled: "Anna ist / aus Deutschland" },
-            { de: "Lukas und Sophie sind 7 Jahre alt.", en: "Lukas and Sophie are 7 years old.", jumbled: "Lukas und Sophie sind / 7 Jahre alt" },
-            { de: "Lukas und Sophie sind aus Österreich.", en: "Lukas and Sophie are from Austria.", jumbled: "aus Österreich / Lukas und Sophie sind" }
+            { de: "Ich bin 15 Jahre alt.", en: "I am 15 years old." },
+            { de: "Ich bin aus England.", en: "I am from England." },
+            { de: "Das Baby ist null Jahre alt.", en: "The baby is zero years old." },
+            { de: "Du bist 13 Jahre alt.", en: "You are 13 years old." },
+            { de: "Du bist aus Deutschland.", en: "You are from Germany." },
+            { de: "Er ist 14 Jahre alt.", en: "He is 14 years old." },
+            { de: "Er ist aus Österreich.", en: "He is from Austria." },
+            { de: "Sie ist 12 Jahre alt.", en: "She is 12 years old." },
+            { de: "Sie ist aus der Schweiz.", en: "She is from Switzerland." },
+            { de: "Es ist 3 Jahre alt.", en: "It is 3 years old." },
+            { de: "Es ist aus Lichtenstein.", en: "It is from Lichtenstein." },
+            { de: "Wir sind 16 Jahre alt.", en: "We are 16 years old." },
+            { de: "Wir sind aus England.", en: "We are from England." },
+            { de: "Ihr seid 11 Jahre alt.", en: "You all are 11 years old." },
+            { de: "Ihr seid aus Deutschland.", en: "You all are from Germany." },
+            { de: "Sie sind 17 Jahre alt.", en: "They are 17 years old." },
+            { de: "Sie sind aus Österreich.", en: "They are from Austria." },
+            { de: "Martin ist 18 Jahre alt.", en: "Martin is 18 years old." },
+            { de: "Martin ist aus der Schweiz.", en: "Martin is from Switzerland." },
+            { de: "Du und Martin seid 19 Jahre alt.", en: "You and Martin are 19 years old." },
+            { de: "Du und Martin seid aus Lichtenstein.", en: "You and Martin are from Lichtenstein." },
+            { de: "Martina und ich sind 20 Jahre alt.", en: "Martina and I are 20 years old." },
+            { de: "Martina und ich sind aus England.", en: "Martina and I are from England." },
+            { de: "Anna ist 8 Jahre alt.", en: "Anna is 8 years old." },
+            { de: "Anna ist aus Deutschland.", en: "Anna is from Germany." },
+            { de: "Lukas und Sophie sind 7 Jahre alt.", en: "Lukas and Sophie are 7 years old." },
+            { de: "Lukas und Sophie sind aus Österreich.", en: "Lukas and Sophie are from Austria." }
         ];
 
         const playerColours = ['blue', 'purple', 'amber'];
@@ -200,9 +186,9 @@
         let players = [];
         let currentPlayerIndex = 0;
         let currentPair = null;
-        let canDig = false;
+        let digsRemaining = 0;
         let gridData = [];
-        const gridSize = 64; 
+        const gridSize = 48; 
         let timeLeft = 300; 
         let timerInterval = null;
 
@@ -218,28 +204,28 @@
             recognition.onstart = () => {
                 isRecognitionActive = true;
                 document.getElementById('mic-btn').classList.add('animate-pulse');
-                document.getElementById('speech-status').innerText = "Ich höre zu...";
+                document.getElementById('speech-status').innerText = "Höre zu / Listening...";
             };
 
             recognition.onresult = (event) => {
                 const speechResult = event.results[0][0].transcript;
                 const input = document.getElementById('answer-input');
                 input.value = speechResult;
-                document.getElementById('speech-status').innerText = "Erkannt! Jetzt korrigieren oder prüfen.";
+                document.getElementById('speech-status').innerText = "Erkannt! / Recognized!";
                 unlockInput();
             };
             
             recognition.onerror = () => {
                 isRecognitionActive = false;
                 document.getElementById('mic-btn').classList.remove('animate-pulse');
-                document.getElementById('speech-status').innerText = "Fehler. Du kannst jetzt tippen.";
+                document.getElementById('speech-status').innerText = "Fehler. Bitte tippen / Type instead.";
                 unlockInput(); 
             };
             
             recognition.onend = () => {
                 isRecognitionActive = false;
                 document.getElementById('mic-btn').classList.remove('animate-pulse');
-                setTimeout(unlockInput, 500);
+                setTimeout(unlockInput, 300);
             };
         }
 
@@ -299,34 +285,34 @@
         function initialiseGrid() {
             const gridContainer = document.getElementById('treasure-grid');
             const rewardTypes = [
-                { icon: '🪙', min: 2, max: 10, label: 'Münzen' },   
-                { icon: '💰', min: 15, max: 35, label: 'Geldbeutel' }, 
-                { icon: '💍', min: 10, max: 15, label: 'Ring' }, 
-                { icon: '💎', min: 20, max: 30, label: 'Edelstein' }, 
-                { icon: '👑', min: 40, max: 60, label: 'Krone' }, 
-                { icon: '✨', min: 1, max: 5, label: 'Sternenstaub' },   
-                { icon: '🦴', min: -5, max: -2, label: 'Knochen' }, 
-                { icon: '💩', min: -8, max: -4, label: 'Mist' }, 
-                { icon: '❌', min: -15, max: -10, label: 'Gefahr' },
-                { icon: '👟', min: 0, max: 1, label: 'Alter Schuh' }, 
-                { icon: '🥫', min: 0, max: 1, label: 'Alte Dose' }    
+                { icon: '🪙', min: 2, max: 10, label: 'Münzen / Coins' },   
+                { icon: '💰', min: 15, max: 35, label: 'Geldbeutel / Purse' }, 
+                { icon: '💍', min: 10, max: 15, label: 'Ring / Ring' }, 
+                { icon: '💎', min: 20, max: 30, label: 'Edelstein / Gem' }, 
+                { icon: '👑', min: 40, max: 60, label: 'Krone / Crown' }, 
+                { icon: '✨', min: 1, max: 5, label: 'Sternenstaub / Stardust' },   
+                { icon: '🦴', min: -5, max: -2, label: 'Knochen / Bone' }, 
+                { icon: '💩', min: -8, max: -4, label: 'Mist / Dirt' }, 
+                { icon: '❌', min: -15, max: -10, label: 'Gefahr / Danger' },
+                { icon: '👟', min: 0, max: 1, label: 'Alter Schuh / Old Shoe' }, 
+                { icon: '🥫', min: 0, max: 1, label: 'Alte Dose / Old Can' }    
             ];
 
             let tempRewards = [];
-            for(let i = 0; i < 10; i++) tempRewards.push({...rewardTypes[0]}); 
-            for(let i = 0; i < 6; i++) tempRewards.push({...rewardTypes[1]}); 
+            for(let i = 0; i < 8; i++) tempRewards.push({...rewardTypes[0]}); 
+            for(let i = 0; i < 5; i++) tempRewards.push({...rewardTypes[1]}); 
             for(let i = 0; i < 3; i++) tempRewards.push({...rewardTypes[2]}); 
             for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[3]}); 
             for(let i = 0; i < 1; i++) tempRewards.push({...rewardTypes[4]}); 
-            for(let i = 0; i < 4; i++) tempRewards.push({...rewardTypes[5]}); 
+            for(let i = 0; i < 3; i++) tempRewards.push({...rewardTypes[5]}); 
             for(let i = 0; i < 3; i++) tempRewards.push({...rewardTypes[6]}); 
             for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[7]}); 
             for(let i = 0; i < 2; i++) tempRewards.push({...rewardTypes[8]}); 
-            for(let i = 0; i < 5; i++) tempRewards.push({...rewardTypes[9]}); 
-            for(let i = 0; i < 5; i++) tempRewards.push({...rewardTypes[10]}); 
+            for(let i = 0; i < 4; i++) tempRewards.push({...rewardTypes[9]}); 
+            for(let i = 0; i < 4; i++) tempRewards.push({...rewardTypes[10]}); 
 
             while(tempRewards.length < gridSize) {
-                tempRewards.push({ icon: '🕳️', min: 0, max: 0, label: 'Nichts' });
+                tempRewards.push({ icon: '🕳️', min: 0, max: 0, label: 'Nichts / Nothing' });
             }
             
             gridData = tempRewards.sort(() => Math.random() - 0.5).map(item => {
@@ -337,7 +323,7 @@
             gridContainer.innerHTML = '';
             for (let i = 0; i < gridSize; i++) {
                 const tile = document.createElement('div');
-                tile.className = 'grid-tile bg-orange-200 border-2 border-orange-300 rounded-lg cursor-pointer h-14 md:h-16 flex items-center justify-center text-2xl md:text-3xl shadow-inner';
+                tile.className = 'grid-tile bg-orange-200 border border-orange-300 rounded-md cursor-pointer h-12 md:h-14 flex items-center justify-center text-xl md:text-2xl shadow-inner';
                 tile.id = `tile-${i}`;
                 tile.onclick = () => handleDig(i);
                 gridContainer.appendChild(tile);
@@ -347,21 +333,20 @@
         function updatePlayerBoard() {
             const board = document.getElementById('player-board');
             board.innerHTML = players.map((p, idx) => `
-                <div class="p-4 rounded-xl border-2 transition-all ${idx === currentPlayerIndex ? `active-player bg-white shadow-lg border-${p.color}-500` : 'bg-slate-100 opacity-60 border-transparent'}">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-lg text-${p.color}-600">${p.name}</span>
-                        <span class="bg-${p.color}-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">${p.score} Pkt.</span>
+                <div class="p-2 md:p-2.5 rounded-xl border transition-all ${idx === currentPlayerIndex ? `active-player bg-white shadow border-${p.color}-500 ring-2 ring-${p.color}-400` : 'bg-slate-100 opacity-60 border-slate-200'}">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-sm md:text-base text-${p.color}-600">${p.name}</span>
+                        <span class="bg-${p.color}-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-sm">${p.score} Pkt.</span>
                     </div>
-                    <div class="flex items-center text-xs text-slate-500 font-bold">
-                        <span class="mr-1">✅ Richtig gelöst:</span>
-                        <span class="text-${p.color}-600">${p.correctAnswers}</span>
+                    <div class="flex items-center text-[11px] text-slate-500 font-semibold mt-0.5">
+                        <span>✅ Richtig / Correct: <strong class="text-${p.color}-600">${p.correctAnswers}</strong></span>
                     </div>
                 </div>
             `).join('');
         }
 
         function startNewRound() {
-            canDig = false;
+            digsRemaining = 0;
             document.getElementById('continue-btn').classList.add('hidden');
             
             const input = document.getElementById('answer-input');
@@ -377,14 +362,13 @@
             micBtn.disabled = false;
             micBtn.classList.add('mic-highlight');
 
-            document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-base">Nutze zuerst das Mikrofon!</p>';
-            document.getElementById('speech-status').innerText = "Bereit für deine Stimme...";
-            document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl">📍</span> Warte auf Stimme...';
+            document.getElementById('feedback-area').innerHTML = '<p class="text-slate-400 italic text-xs">Nutze das Mikrofon / Use microphone</p>';
+            document.getElementById('speech-status').innerText = "Bereit / Ready...";
+            document.getElementById('grid-status-text').innerHTML = '<span>📍</span> Warte auf Stimme / Waiting...';
             document.getElementById('dig-count').innerText = "";
             
             currentPair = sentencePairs[Math.floor(Math.random() * sentencePairs.length)];
-            document.getElementById('english-sentence').innerText = currentPair.en;
-            document.getElementById('jumbled-chunks').innerText = currentPair.jumbled;
+            document.getElementById('target-prompt').innerText = currentPair.en;
             updatePlayerBoard();
         }
 
@@ -417,36 +401,41 @@
                 updatePlayerBoard();
                 
                 feedback.innerHTML = `
-                    <div class="text-green-600 font-bold mb-2 text-xl">✅ RICHTIG!</div>
-                    <div class="text-slate-700 bg-green-50 p-3 rounded-lg border-2 border-green-200 w-full text-left">
-                        <p class="text-[10px] uppercase text-green-500 font-black mb-1">Deine Antwort:</p>
-                        <p class="font-bold text-base">${inputVal || "—"}</p>
+                    <div class="text-green-600 font-black text-sm mb-1">✅ RICHTIG / CORRECT!</div>
+                    <p class="text-slate-700 text-xs font-bold mb-1">Hilfe benutzt? / Used help?</p>
+                    <div class="flex gap-2 w-full">
+                        <button onclick="chooseHelp(false)" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded text-xs shadow">
+                            Nein / No (2)
+                        </button>
+                        <button onclick="chooseHelp(true)" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-2 rounded text-xs shadow">
+                            Ja / Yes (1)
+                        </button>
                     </div>
                 `;
-                canDig = true;
-                document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl text-green-500">⛏️</span> Korrekt! Grabe jetzt!';
-                document.getElementById('dig-count').innerText = "👉 Klicke auf ein Feld im Raster!";
             } else {
                 feedback.innerHTML = `
-                    <div class="text-red-600 font-bold mb-2 text-xl">❌ NICHT GANZ...</div>
-                    <div class="space-y-2 text-left w-full">
-                        <div class="bg-red-50 p-2 rounded border border-red-100">
-                            <p class="text-[9px] uppercase text-red-400 font-black">Deine Eingabe:</p>
-                            <p class="text-sm italic text-slate-600">${inputVal || "(leer)"}</p>
-                        </div>
-                        <div class="bg-blue-50 p-2 rounded border border-blue-100">
-                            <p class="text-[9px] uppercase text-blue-500 font-black">Richtige Lösung:</p>
-                            <p class="text-sm font-bold text-slate-800">${currentPair.de}</p>
-                        </div>
-                    </div>
+                    <div class="text-red-600 font-bold text-xs mb-0.5">❌ FALSCH / INCORRECT</div>
+                    <p class="text-[11px] text-slate-600 truncate">Eingabe: "${inputVal || "(leer)"}"</p>
+                    <p class="text-[11px] font-bold text-blue-600">Lösung / Solution: ${currentPair.de}</p>
                 `;
                 document.getElementById('continue-btn').classList.remove('hidden');
-                document.getElementById('grid-status-text').innerHTML = '<span class="text-2xl">👎</span> Leider falsch.';
+                document.getElementById('grid-status-text').innerHTML = '<span>👎</span> Leider falsch / Incorrect';
             }
         }
 
+        function chooseHelp(usedHelp) {
+            digsRemaining = usedHelp ? 1 : 2;
+            const feedback = document.getElementById('feedback-area');
+            feedback.innerHTML = `
+                <div class="text-green-600 font-bold text-xs mb-0.5">🎉 Super!</div>
+                <p class="text-slate-700 text-xs font-bold">Grabe <span class="text-green-600 underline">${digsRemaining} ${digsRemaining === 1 ? 'Feld' : 'Felder'}</span> auf / Dig ${digsRemaining} tile(s)!</p>
+            `;
+            document.getElementById('grid-status-text').innerHTML = `<span class="text-green-500 font-bold">⛏️ ${digsRemaining} Zug${digsRemaining > 1 ? 'e' : ''} übrig / left</span>`;
+            document.getElementById('dig-count').innerText = `👉 Klicke ins Raster / Click grid`;
+        }
+
         function handleDig(index) {
-            if (!canDig) return;
+            if (digsRemaining <= 0) return;
             const tile = document.getElementById(`tile-${index}`);
             if (tile.classList.contains('revealed')) return;
 
@@ -459,20 +448,25 @@
             players[currentPlayerIndex].score += content.points;
             updatePlayerBoard();
             
-            canDig = false;
+            digsRemaining--;
+            
             let resultText = "";
             if (content.icon === '🕳️') {
-                resultText = "Nichts gefunden...";
+                resultText = "Nichts / Nothing";
             } else if (content.points > 0) {
-                resultText = `${content.label}: +${content.points} Punkte!`;
-            } else if (content.points < 0) {
-                resultText = `${content.label}: ${content.points} Punkte!`;
+                resultText = `${content.label}: +${content.points}`;
             } else {
-                resultText = `${content.label}: 0 Punkte.`;
+                resultText = `${content.label}: ${content.points}`;
             }
             
             document.getElementById('dig-count').innerText = resultText;
-            document.getElementById('continue-btn').classList.remove('hidden');
+
+            if (digsRemaining > 0) {
+                document.getElementById('grid-status-text').innerHTML = `<span class="text-green-500 font-bold">⛏️ Noch ${digsRemaining} Zug übrig / left</span>`;
+            } else {
+                document.getElementById('grid-status-text').innerHTML = '<span>✅</span> Fertig / Done!';
+                document.getElementById('continue-btn').classList.remove('hidden');
+            }
 
             if (isGridFull()) endGame();
         }
@@ -493,12 +487,12 @@
             const ranking = [...players].sort((a, b) => b.score - a.score);
             const rankingList = document.getElementById('final-ranking');
             rankingList.innerHTML = ranking.map((p, i) => `
-                <div class="flex items-center justify-between bg-white p-6 rounded-2xl border-4 border-${p.color}-500 shadow-xl">
-                    <div class="flex flex-col">
-                        <span class="text-3xl font-bold">${i + 1}. ${p.name}</span>
-                        <span class="text-sm text-slate-500 font-bold">✅ ${p.correctAnswers} Sätze richtig</span>
+                <div class="flex items-center justify-between bg-white p-4 rounded-xl border-2 border-${p.color}-500 shadow">
+                    <div class="flex flex-col text-left">
+                        <span class="text-xl font-bold">${i + 1}. ${p.name}</span>
+                        <span class="text-xs text-slate-500">✅ ${p.correctAnswers} Richtig / Correct</span>
                     </div>
-                    <span class="text-2xl font-bold text-green-600">${p.score} Punkte</span>
+                    <span class="text-lg font-bold text-green-600">${p.score} Pkt.</span>
                 </div>
             `).join('');
         }
