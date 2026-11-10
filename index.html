@@ -150,33 +150,106 @@
 
     <script>
         const sentencePairs = [
-            { de: "Ich bin 15 Jahre alt.", en: "I am 15 years old." },
+            // Ich
+            { de: "Ich bin fünfzehn Jahre alt.", en: "I am fifteen years old." },
             { de: "Ich bin aus England.", en: "I am from England." },
-            { de: "Das Baby ist null Jahre alt.", en: "The baby is zero years old." },
-            { de: "Du bist 13 Jahre alt.", en: "You are 13 years old." },
+            { de: "Ich bin zehn Jahre alt.", en: "I am ten years old." },
+            { de: "Ich bin aus Deutschland.", en: "I am from Germany." },
+            { de: "Ich bin zwanzig Jahre alt.", en: "I am twenty years old." },
+            { de: "Ich bin aus Österreich.", en: "I am from Austria." },
+
+            // Du
+            { de: "Du bist dreizehn Jahre alt.", en: "You are thirteen years old." },
             { de: "Du bist aus Deutschland.", en: "You are from Germany." },
-            { de: "Er ist 14 Jahre alt.", en: "He is 14 years old." },
+            { de: "Du bist acht Jahre alt.", en: "You are eight years old." },
+            { de: "Du bist aus der Schweiz.", en: "You are from Switzerland." },
+            { de: "Du bist elf Jahre alt.", en: "You are eleven years old." },
+            { de: "Du bist aus Lichtenstein.", en: "You are from Lichtenstein." },
+
+            // Er
+            { de: "Er ist vierzehn Jahre alt.", en: "He is fourteen years old." },
             { de: "Er ist aus Österreich.", en: "He is from Austria." },
-            { de: "Sie ist 12 Jahre alt.", en: "She is 12 years old." },
+            { de: "Er ist sechs Jahre alt.", en: "He is six years old." },
+            { de: "Er ist aus England.", en: "He is from England." },
+            { de: "Er ist neunzehn Jahre alt.", en: "He is nineteen years old." },
+            { de: "Er ist aus der Schweiz.", en: "He is from Switzerland." },
+
+            // Sie (singular)
+            { de: "Sie ist zwölf Jahre alt.", en: "She is twelve years old." },
             { de: "Sie ist aus der Schweiz.", en: "She is from Switzerland." },
-            { de: "Es ist 3 Jahre alt.", en: "It is 3 years old." },
+            { de: "Sie ist sieben Jahre alt.", en: "She is seven years old." },
+            { de: "Sie ist aus England.", en: "She is from England." },
+            { de: "Sie ist siebzehn Jahre alt.", en: "She is seventeen years old." },
+            { de: "Sie ist aus Deutschland.", en: "She is from Germany." },
+
+            // Es / Baby
+            { de: "Es ist drei Jahre alt.", en: "It is three years old." },
             { de: "Es ist aus Lichtenstein.", en: "It is from Lichtenstein." },
-            { de: "Wir sind 16 Jahre alt.", en: "We are 16 years old." },
+            { de: "Das Baby ist null Jahre alt.", en: "The baby is zero years old." },
+            { de: "Es ist ein Jahr alt.", en: "It is one year old." },
+            { de: "Es ist aus Österreich.", en: "It is from Austria." },
+
+            // Wir
+            { de: "Wir sind sechzehn Jahre alt.", en: "We are sixteen years old." },
             { de: "Wir sind aus England.", en: "We are from England." },
-            { de: "Ihr seid 11 Jahre alt.", en: "You all are 11 years old." },
+            { de: "Wir sind fünf Jahre alt.", en: "We are five years old." },
+            { de: "Wir sind aus Deutschland.", en: "We are from Germany." },
+            { de: "Wir sind achtzehn Jahre alt.", en: "We are eighteen years old." },
+            { de: "Wir sind aus Lichtenstein.", en: "We are from Lichtenstein." },
+
+            // Ihr
+            { de: "Ihr seid elf Jahre alt.", en: "You all are eleven years old." },
             { de: "Ihr seid aus Deutschland.", en: "You all are from Germany." },
-            { de: "Sie sind 17 Jahre alt.", en: "They are 17 years old." },
+            { de: "Ihr seid vier Jahre alt.", en: "You all are four years old." },
+            { de: "Ihr seid aus der Schweiz.", en: "You all are from Switzerland." },
+            { de: "Ihr seid zwölf Jahre alt.", en: "You all are twelve years old." },
+            { de: "Ihr seid aus Österreich.", en: "You all are from Austria." },
+
+            // Sie (plural)
+            { de: "Sie sind siebzehn Jahre alt.", en: "They are seventeen years old." },
             { de: "Sie sind aus Österreich.", en: "They are from Austria." },
-            { de: "Martin ist 18 Jahre alt.", en: "Martin is 18 years old." },
+            { de: "Sie sind zwei Jahre alt.", en: "They are two years old." },
+            { de: "Sie sind aus England.", en: "They are from England." },
+            { de: "Sie sind neun Jahre alt.", en: "They are nine years old." },
+            { de: "Sie sind aus Lichtenstein.", en: "They are from Lichtenstein." },
+
+            // Mein Freund & Meine Freundin
+            { de: "Mein Freund ist sechzehn Jahre alt.", en: "My male friend is sixteen years old." },
+            { de: "Mein Freund ist aus England.", en: "My male friend is from England." },
+            { de: "Meine Freundin ist fünfzehn Jahre alt.", en: "My female friend is fifteen years old." },
+            { de: "Meine Freundin ist aus der Schweiz.", en: "My female friend is from Switzerland." },
+            { de: "Mein Freund ist vierzehn Jahre alt.", en: "My male friend is fourteen years old." },
+            { de: "Mein Freund ist aus Deutschland.", en: "My male friend is from Germany." },
+            { de: "Meine Freundin ist dreizehn Jahre alt.", en: "My female friend is thirteen years old." },
+            { de: "Meine Freundin ist aus Österreich.", en: "My female friend is from Austria." },
+            { de: "Mein Freund ist aus Lichtenstein.", en: "My male friend is from Lichtenstein." },
+            { de: "Meine Freundin ist aus England.", en: "My female friend is from England." },
+
+            // Names & Compounds
+            { de: "Martin ist achtzehn Jahre alt.", en: "Martin is eighteen years old." },
             { de: "Martin ist aus der Schweiz.", en: "Martin is from Switzerland." },
-            { de: "Du und Martin seid 19 Jahre alt.", en: "You and Martin are 19 years old." },
-            { de: "Du und Martin seid aus Lichtenstein.", en: "You and Martin are from Lichtenstein." },
-            { de: "Martina und ich sind 20 Jahre alt.", en: "Martina and I are 20 years old." },
-            { de: "Martina und ich sind aus England.", en: "Martina and I are from England." },
-            { de: "Anna ist 8 Jahre alt.", en: "Anna is 8 years old." },
+            { de: "Anna ist acht Jahre alt.", en: "Anna is eight years old." },
             { de: "Anna ist aus Deutschland.", en: "Anna is from Germany." },
-            { de: "Lukas und Sophie sind 7 Jahre alt.", en: "Lukas and Sophie are 7 years old." },
-            { de: "Lukas und Sophie sind aus Österreich.", en: "Lukas and Sophie are from Austria." }
+            { de: "Thomas ist ein Jahr alt.", en: "Thomas is one year old." },
+            { de: "Thomas ist aus Lichtenstein.", en: "Thomas is from Lichtenstein." },
+            { de: "Sarah ist vier Jahre alt.", en: "Sarah is four years old." },
+            { de: "Sarah ist aus England.", en: "Sarah is from England." },
+            { de: "Felix ist fünf Jahre alt.", en: "Felix is five years old." },
+            { de: "Felix ist aus Deutschland.", en: "Felix is from Germany." },
+            { de: "Lena ist sechs Jahre alt.", en: "Lena is six years old." },
+            { de: "Lena ist aus Österreich.", en: "Lena is from Austria." },
+            { de: "Max ist neun Jahre alt.", en: "Max is nine years old." },
+            { de: "Max ist aus Lichtenstein.", en: "Max is from Lichtenstein." },
+            { de: "Mia ist zehn Jahre alt.", en: "Mia is ten years old." },
+            { de: "Mia ist aus der Schweiz.", en: "Mia is from Switzerland." },
+            { de: "Du und Martin seid neunzehn Jahre alt.", en: "You and Martin are nineteen years old." },
+            { de: "Du und Martin sind aus Lichtenstein.", en: "You and Martin are from Lichtenstein." },
+            { de: "Martina und ich sind zwanzig Jahre alt.", en: "Martina and I are twenty years old." },
+            { de: "Martina und ich sind aus England.", en: "Martina and I are from England." },
+            { de: "Lukas und Sophie sind sieben Jahre alt.", en: "Lukas and Sophie are seven years old." },
+            { de: "Lukas und Sophie sind aus Österreich.", en: "Lukas and Sophie are from Austria." },
+            { de: "Marie und Ben sind zwei Jahre alt.", en: "Marie and Ben are two years old." },
+            { de: "Marie und Ben sind aus der Schweiz.", en: "Marie and Ben are from Switzerland." }
         ];
 
         const playerColours = ['blue', 'purple', 'amber'];
